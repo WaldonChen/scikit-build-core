@@ -396,3 +396,8 @@ class ScikitBuildSettings:
     """
     Immediately fail the build. This is only useful in overrides.
     """
+
+    init_cache_only: bool = False
+    """
+    Only generate CMakeInit.txt file.
+    """
