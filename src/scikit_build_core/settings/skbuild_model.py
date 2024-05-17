@@ -319,3 +319,8 @@ class ScikitBuildSettings:
     """
     The build directory. Defaults to a temporary directory, but can be set.
     """
+
+    init_cache_only: bool = False
+    """
+    Only generate CMakeInit.txt file.
+    """

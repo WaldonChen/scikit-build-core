@@ -216,6 +216,7 @@ class Builder:
         if cache_entries:
             cache_config.update(cache_entries)
 
+        self.config.init_cache_only = self.settings.init_cache_only
         self.config.init_cache(cache_config)
 
         if sys.platform.startswith("darwin"):

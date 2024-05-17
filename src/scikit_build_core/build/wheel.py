@@ -167,7 +167,6 @@ def _build_wheel_impl(
 
     with tempfile.TemporaryDirectory() as tmpdir, fix_win_37_all_permissions(tmpdir):
         build_tmp_folder = Path(tmpdir)
-        wheel_dir = build_tmp_folder / "wheel"
 
         tags = WheelTag.compute_best(
             archs_to_tags(get_archs(os.environ)),
@@ -195,6 +194,8 @@ def _build_wheel_impl(
             )
             logger.info("Build directory: {}", build_dir.resolve())
 
+        wheel_dir = (build_dir if settings.build_dir else build_tmp_folder) / "wheel"
+
         wheel_dirs = {
             targetlib: wheel_dir / targetlib,
             "data": wheel_dir / "data",
@@ -205,7 +206,7 @@ def _build_wheel_impl(
         }
 
         for d in wheel_dirs.values():
-            d.mkdir(parents=True)
+            d.mkdir(parents=True, exist_ok=True)
 
         if ".." in settings.wheel.install_dir:
             msg = "wheel.install_dir must not contain '..'"
@@ -337,6 +338,12 @@ def _build_wheel_impl(
                 install_options += ["--config", builder.config.build_type]
             if builder.settings.cmake.verbose:
                 build_options.append("-v")
+
+        if settings.init_cache_only and not any(wheel_dirs[targetlib].iterdir()):
+            rich_print(
+                f"[green]***[/green] [bold]init_cache_only enabled. Exiting {state}..."
+            )
+            return WheelImplReturn("")
 
         assert wheel_directory is not None
 

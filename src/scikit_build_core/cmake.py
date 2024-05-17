@@ -82,6 +82,7 @@ class CMaker:
     init_cache_file: Path = dataclasses.field(init=False, default=Path())
     env: dict[str, str] = dataclasses.field(init=False, default_factory=os.environ.copy)
     single_config: bool = not sysconfig.get_platform().startswith("win")
+    init_cache_only: bool = False
 
     def __post_init__(self) -> None:
         self.init_cache_file = self.build_dir / "CMakeInit.txt"
@@ -132,6 +133,9 @@ class CMaker:
     def init_cache(
         self, cache_settings: Mapping[str, str | os.PathLike[str] | bool]
     ) -> None:
+        if self.init_cache_only and self.init_cache_file.exists():
+            logger.warning("init cache file {} exists!", self.init_cache_file.name)
+            return
         with self.init_cache_file.open("w", encoding="utf-8") as f:
             for key, value in cache_settings.items():
                 if isinstance(value, bool):
@@ -214,6 +218,11 @@ class CMaker:
         if self.single_config and self.build_type:
             all_args.insert(2, f"-DCMAKE_BUILD_TYPE:STRING={self.build_type}")
 
+        if self.init_cache_only:
+            logger.warning("CMake Configure Command: {} {}",
+                           self.cmake.cmake_path, ' '.join(all_args))
+            return
+
         try:
             Run(env=self.env).live(self.cmake, *all_args)
         except subprocess.CalledProcessError:
@@ -247,6 +256,11 @@ class CMaker:
             self._build(*local_args, "--target", target, *build_args)
 
     def _build(self, *args: str) -> None:
+        if self.init_cache_only:
+            logger.warning("CMake Build Command: {} --build {} {}",
+                           self.cmake.cmake_path, self.build_dir, ' '.join(args))
+            return
+
         try:
             Run(env=self.env).live(self.cmake, "--build", self.build_dir, *args)
         except subprocess.CalledProcessError:
@@ -272,6 +286,11 @@ class CMaker:
             self._install(opts_with_comp)
 
     def _install(self, opts: Sequence[str]) -> None:
+        if self.init_cache_only:
+            logger.warning("CMake Install Command: {} --install {} {}",
+                           self.cmake.cmake_path, self.build_dir, ' '.join(opts))
+            return
+
         try:
             Run(env=self.env).live(
                 self.cmake,
