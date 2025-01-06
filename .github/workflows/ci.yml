@@ -124,7 +124,7 @@ jobs:
           --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           name:
             ${{ runner.os }}-${{ matrix.python-version }}-${{
@@ -202,7 +202,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: cygwin/cygwin-install-action@v4
+      - uses: cygwin/cygwin-install-action@v5
         with:
           platform: x86_64
           packages:
@@ -307,7 +307,7 @@ jobs:
 
       - uses: yezz123/setup-uv@v4
 
-      - uses: wntrblm/nox@2024.04.15
+      - uses: wntrblm/nox@2024.10.09
         with:
           python-versions: "3.11"
 
